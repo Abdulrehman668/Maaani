@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ur" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>لیسر منجھلا</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;700&display=swap" rel="stylesheet">
+<style>body{font-family:'Noto Naskh Arabic',sans-serif;background:#F8FAFC}</style>
+</head><body>
+<div id="app" class="min-h-screen flex flex-col">
+<header class="bg-[#0A3D2E] text-white p-3"><div class="flex items-center gap-3"><div class="w-10 h-10 bg-white text-[#0A3D2E] rounded-full flex items-center justify-center font-bold">🕌</div><div><h1 class="font-bold text-lg">لیسر منجھلا</h1><p class="text-[10px]">جامع مسجد یا رسول اللہ لیسر منجھلا | مدرسہ سیدہ فاطمۃ الزہراء | قبرستان لیسر منجھلہ</p></div></div><p class="text-[10px] text-yellow-200 mt-1">ایپ بنانے والے: رانا عبدالرحمن سرور</p></header>
+<main class="flex-1 p-3">
+<div class="bg-white rounded-xl shadow p-4 max-w-md mx-auto mt-6">
+<h2 class="font-bold text-center">🔐 لاگ ان منتخب کریں</h2>
+<div class="grid grid-cols-2 gap-3 mt-4">
+<button onclick="login('editor')" class="bg-[#0A3D2E] text-white py-3 rounded-lg font-bold">ایڈیٹر<br><span class="text-[10px]">admin / lesser123</span></button>
+<button onclick="login('viewer')" class="bg-blue-600 text-white py-3 rounded-lg font-bold">ویور<br><span class="text-[10px]">موبائل نمبر</span></button>
+</div>
+<div id="loginArea" class="mt-4"></div>
+</div>
+<div id="dash" class="hidden max-w-4xl mx-auto">
+<div class="grid grid-cols-3 gap-2 mt-4">
+<div class="bg-white p-3 rounded-xl shadow text-center"><p class="text-xs">مسجد بیلنس</p><b class="text-green-700" id="mBal">Rs.0</b></div>
+<div class="bg-white p-3 rounded-xl shadow text-center"><p class="text-xs">مدرسہ بیلنس</p><b class="text-green-700" id="mdBal">Rs.0</b></div>
+<div class="bg-white p-3 rounded-xl shadow text-center"><p class="text-xs">قبرستان بیلنس</p><b class="text-green-700" id="qBal">Rs.0</b></div>
+</div>
+<div class="bg-white rounded-xl shadow p-4 mt-4">
+<h3 class="font-bold">💰 نیا چندہ</h3>
+<input id="name" placeholder="نام" class="w-full mt-2 border p-2 rounded">
+<input id="amount" type="number" placeholder="رقم" class="w-full mt-2 border p-2 rounded">
+<select id="cat" class="w-full mt-2 border p-2 rounded"><option>مسجد</option><option>مدرسہ</option><option>قبرستان</option></select>
+<button onclick="addEntry()" class="w-full mt-2 bg-[#0A3D2E] text-white py-2 rounded font-bold">جمع کریں</button>
+</div>
+<div id="list" class="mt-4 space-y-2"></div>
+<button onclick="window.print()" class="w-full mt-4 bg-yellow-500 py-2 rounded font-bold">📄 PDF رپورٹ</button>
+<p class="text-center text-[10px] mt-2 text-gray-500">ایپ بنانے والے: رانا عبدالرحمن سرور - لیسر منجھلا</p>
+</div>
+</main>
+</div>
+<script>
+let role=null;
+let data=JSON.parse(localStorage.getItem('lm_data')||'[]');
+function login(r){
+ role=r;
+ const area=document.getElementById('loginArea');
+ if(r==='editor'){area.innerHTML='<input id="u" placeholder="یوزر نیم" class="w-full border p-2 rounded mt-2"><input id="p" type="password" placeholder="پاس ورڈ" class="w-full border p-2 rounded mt-2"><button onclick="doEditor()" class="w-full mt-2 bg-[#0A3D2E] text-white py-2 rounded">لاگ ان (admin/lesser123)</button>';}
+ else{area.innerHTML='<input id="mob" placeholder="موبائل نمبر 03XX" class="w-full border p-2 rounded mt-2"><button onclick="doViewer()" class="w-full mt-2 bg-blue-600 text-white py-2 rounded">ویور لاگ ان</button>';}
+}
+function doEditor(){if(document.getElementById('u').value==='admin'&&document.getElementById('p').value==='lesser123'){localStorage.setItem('lm_role','editor');showDash();}else alert('غلط لاگ ان');}
+function doViewer(){const m=document.getElementById('mob').value;if(m.length>=11){localStorage.setItem('lm_role','viewer');role='viewer';showDash();}else alert('موبائل نمبر درست لکھیں');}
+function showDash(){document.querySelector('.max-w-md').classList.add('hidden');document.getElementById('dash').classList.remove('hidden');render();}
+function addEntry(){const n=document.getElementById('name').value;const a=Number(document.getElementById('amount').value);const c=document.getElementById('cat').value;if(!n||!a)return;data.unshift({name:n,amount:a,cat:c,date:new Date().toLocaleDateString()});localStorage.setItem('lm_data',JSON.stringify(data));render();document.getElementById('name').value='';document.getElementById('amount').value='';}
+function render(){const list=document.getElementById('list');list.innerHTML=data.map(d=>`<div class="bg-white p-2 rounded shadow flex justify-between text-sm"><span><b>${d.name}</b> - ${d.cat} - ${d.date}</span><span>Rs.${d.amount}</span></div>`).join('');const calc=c=>data.filter(x=>x.cat===c).reduce((s,x)=>s+x.amount,0);document.getElementById('mBal').innerText='Rs.'+calc('مسجد');document.getElementById('mdBal').innerText='Rs.'+calc('مدرسہ');document.getElementById('qBal').innerText='Rs.'+calc('قبرستان');}
+if(localStorage.getItem('lm_role')){role=localStorage.getItem('lm_role');showDash();}
+</script></body></html>
