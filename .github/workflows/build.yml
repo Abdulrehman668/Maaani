@@ -1,28 +1,34 @@
 name: Build Lesser Manjhla APK
-on: [push]
+on: [push, workflow_dispatch]
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      
       - name: Setup JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
+          
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: 8.5
+          
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
-      - name: Create Android Project
+        
+      - name: Create Android Project Structure
         run: |
           mkdir -p app/src/main/assets
           mkdir -p app/src/main/java/com/lesser/manjhla
-          # Copy your index.html to assets
-          cp index.html app/src/main/assets/index.html || echo "No index.html at root"
-          # Create build files
+          cp index.html app/src/main/assets/index.html
           echo "include ':app'" > settings.gradle
           echo "android.useAndroidX=true" > gradle.properties
           echo "buildscript { repositories { google(); mavenCentral() } dependencies { classpath 'com.android.tools.build:gradle:8.2.0' } } allprojects { repositories { google(); mavenCentral() } }" > build.gradle
-          cat > app/build.gradle << 'EOF'
+          cat > app/build.gradle << 'EOFF'
           plugins { id 'com.android.application' }
           android {
               namespace 'com.lesser.manjhla'
@@ -34,42 +40,49 @@ jobs:
                   versionCode 1
                   versionName "1.0"
               }
-              compileOptions { sourceCompatibility JavaVersion.VERSION_1_8; targetCompatibility JavaVersion.VERSION_1_8 }
           }
-          dependencies { implementation 'androidx.appcompat:appcompat:1.6.1' }
-          EOF
-          cat > app/src/main/AndroidManifest.xml << 'EOF'
+          dependencies {
+              implementation 'androidx.appcompat:appcompat:1.6.1'
+          }
+          EOFF
+          cat > app/src/main/AndroidManifest.xml << 'EOFF'
           <?xml version="1.0" encoding="utf-8"?>
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-              <uses-permission android:name="android.permission.INTERNET" />
               <application android:allowBackup="true" android:label="لیسر منجھلا" android:theme="@android:style/Theme.Light.NoTitleBar">
                   <activity android:name=".MainActivity" android:exported="true">
                       <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
                   </activity>
               </application>
           </manifest>
-          EOF
-          cat > app/src/main/java/com/lesser/manjhla/MainActivity.java << 'EOF'
+          EOFF
+          cat > app/src/main/java/com/lesser/manjhla/MainActivity.java << 'EOFF'
           package com.lesser.manjhla;
-          import android.app.Activity; import android.os.Bundle; import android.webkit.WebView; import android.webkit.WebSettings;
+          import android.app.Activity;
+          import android.os.Bundle;
+          import android.webkit.WebView;
+          import android.webkit.WebSettings;
           public class MainActivity extends Activity {
-              @Override protected void onCreate(Bundle savedInstanceState) {
+              @Override
+              protected void onCreate(Bundle savedInstanceState) {
                   super.onCreate(savedInstanceState);
                   WebView wv = new WebView(this);
                   WebSettings s = wv.getSettings();
-                  s.setJavaScriptEnabled(true); s.setDomStorageEnabled(true); s.setAllowFileAccess(true);
+                  s.setJavaScriptEnabled(true);
+                  s.setDomStorageEnabled(true);
                   wv.loadUrl("file:///android_asset/index.html");
                   setContentView(wv);
               }
           }
-          EOF
-      - name: Build APK
+          EOFF
+          
+      - name: Build Debug APK
         run: |
-          gradle wrapper --gradle-version 8.5
+          gradle wrapper
           chmod +x gradlew
-         ./gradlew assembleDebug
+          ./gradlew assembleDebug
+          
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: Lesser-Manjhla-APK
-          path: app/build/outputs/apk/debug/*.apk
+          path: app/build/outputs/apk/debug/app-debug.apk
