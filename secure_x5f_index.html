@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ur" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>لیسر منجھلا</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;700&display=swap" rel="stylesheet">
+<style>body{font-family:'Noto Naskh Arabic',sans-serif;background:#F8FAFC}
+.ltr{ direction:ltr; } .rtl{ direction:rtl; }
+</style>
+</head><body>
+<div id="app" class="min-h-screen flex flex-col">
+<header class="bg-[#0A3D2E] text-white p-3 flex justify-between items-center">
+<div class="flex items-center gap-3"><div class="w-10 h-10 bg-white text-[#0A3D2E] rounded-full flex items-center justify-center font-bold">🕌</div>
+<div><h1 class="font-bold text-lg" data-t="title">لیسر منجھلا</h1><p class="text-[10px]" data-t="subtitle">جامع مسجد یا رسول اللہ لیسر منجھلا | مدرسہ سیدہ فاطمۃ الزہراء | قبرستان لیسر منجھلہ</p></div></div>
+<button onclick="toggleLang()" id="langBtn" class="bg-white/20 px-3 py-1 rounded-full text-xs font-bold">English</button>
+</header>
+<p class="text-[10px] text-center text-gray-500 mt-1" data-t="credit">ایپ بنانے والے: رانا عبدالرحمن سرور</p>
+
+<main class="flex-1 p-3">
+<div id="loginBox" class="bg-white rounded-xl shadow p-4 max-w-md mx-auto mt-6">
+<h2 class="font-bold text-center" data-t="selectLogin">🔐 لاگ ان منتخب کریں</h2>
+<div class="grid grid-cols-2 gap-3 mt-4">
+<button onclick="login('editor')" class="bg-[#0A3D2E] text-white py-3 rounded-lg font-bold"><span data-t="editor">ایڈیٹر</span><br><span class="text-[10px]" data-t="editorOnly">صرف منتظم</span></button>
+<button onclick="login('viewer')" class="bg-blue-600 text-white py-3 rounded-lg font-bold"><span data-t="viewer">ویور</span><br><span class="text-[10px]" data-t="village">گاؤں والے</span></button>
+</div>
+<div id="loginArea" class="mt-4"></div>
+<p class="text-[9px] text-center text-gray-400 mt-4" data-t="viewerNote">گاؤں والے صرف ویور کے طور پر لاگ ان کر سکتے ہیں، وہ صرف دیکھ سکتے ہیں</p>
+</div>
+
+<div id="dash" class="hidden max-w-4xl mx-auto">
+<div class="flex justify-between items-center mt-2"><h3 class="font-bold" id="roleBadge"></h3><button onclick="logout()" class="text-xs bg-red-100 text-red-600 px-3 py-1 rounded-full" data-t="logout">لاگ آؤٹ</button></div>
+
+<div class="grid grid-cols-3 gap-2 mt-4">
+<div class="bg-white p-3 rounded-xl shadow text-center"><p class="text-xs" data-t="mBal">مسجد بیلنس</p><b class="text-green-700" id="mBal">Rs.0</b></div>
+<div class="bg-white p-3 rounded-xl shadow text-center"><p class="text-xs" data-t="mdBal">مدرسہ بیلنس</p><b class="text-green-700" id="mdBal">Rs.0</b></div>
+<div class="bg-white p-3 rounded-xl shadow text-center"><p class="text-xs" data-t="qBal">قبرستان بیلنس</p><b class="text-green-700" id="qBal">Rs.0</b></div>
+</div>
+
+<div id="editorPanel" class="bg-white rounded-xl shadow p-4 mt-4 hidden">
+<h3 class="font-bold" data-t="newDonation">💰 نیا چندہ</h3>
+<input id="name" placeholder="نام" class="w-full mt-2 border p-2 rounded">
+<input id="amount" type="number" placeholder="رقم" class="w-full mt-2 border p-2 rounded">
+<select id="cat" class="w-full mt-2 border p-2 rounded"><option>مسجد</option><option>مدرسہ</option><option>قبرستان</option></select>
+<button onclick="addEntry()" class="w-full mt-2 bg-[#0A3D2E] text-white py-2 rounded font-bold" data-t="collect">جمع کریں</button>
+</div>
+
+<div id="viewerMsg" class="bg-blue-50 border border-blue-200 rounded-xl p-3 mt-4 hidden text-center text-sm text-blue-800"><span data-t="viewerMsg">👁️ آپ ویور کے طور پر دیکھ رہے ہیں - آپ صرف بیلنس اور لسٹ دیکھ سکتے ہیں، تبدیلی صرف منتظم کر سکتا ہے</span></div>
+
+<div id="list" class="mt-4 space-y-2"></div>
+<button onclick="window.print()" class="w-full mt-4 bg-yellow-500 py-2 rounded font-bold" data-t="pdf">📄 PDF رپورٹ</button>
+</div>
+</main>
+</div>
+<script>
+let lang='ur';
+let role=null;
+let data=JSON.parse(localStorage.getItem('lm_data')||'[]');
+
+const trans={
+ur:{
+title:'لیسر منجھلا', subtitle:'جامع مسجد یا رسول اللہ لیسر منجھلا | مدرسہ سیدہ فاطمۃ الزہراء | قبرستان لیسر منجھلہ',
+credit:'ایپ بنانے والے: رانا عبدالرحمن سرور', selectLogin:'🔐 لاگ ان منتخب کریں', editor:'ایڈیٹر', editorOnly:'صرف منتظم', viewer:'ویور', village:'گاؤں والے',
+viewerNote:'گاؤں والے صرف ویور کے طور پر لاگ ان کر سکتے ہیں، وہ صرف دیکھ سکتے ہیں', logout:'لاگ آؤٹ', mBal:'مسجد بیلنس', mdBal:'مدرسہ بیلنس', qBal:'قبرستان بیلنس',
+newDonation:'💰 نیا چندہ', collect:'جمع کریں', viewerMsg:'👁️ آپ ویور کے طور پر دیکھ رہے ہیں - آپ صرف بیلنس اور لسٹ دیکھ سکتے ہیں، تبدیلی صرف منتظم کر سکتا ہے', pdf:'📄 PDF رپورٹ',
+user:'یوزر نیم', pass:'پاس ورڈ', mob:'موبائل نمبر 03XX', login:'لاگ ان', viewerLogin:'ویور لاگ ان', editorRole:'🛠️ ایڈیٹر - منتظم', viewerRole:'👁️ ویور - گاؤں والے'
+},
+en:{
+title:'Lesser Manjhla', subtitle:'Jamia Masjid Ya Rasool Allah Lesser Manjhla | Madrasa Syeda Fatima Zahra | Graveyard Lesser Manjhla',
+credit:'App by: Rana Abdulrehman Sarwar', selectLogin:'🔐 Select Login', editor:'Editor', editorOnly:'Only Admin', viewer:'Viewer', village:'Villagers',
+viewerNote:'Villagers can only login as Viewer, they can only view', logout:'Logout', mBal:'Masjid Balance', mdBal:'Madrasa Balance', qBal:'Graveyard Balance',
+newDonation:'💰 New Donation', collect:'Add', viewerMsg:'👁️ You are viewing as Viewer - You can only see balance & list, only admin can edit', pdf:'📄 PDF Report',
+user:'Username', pass:'Password', mob:'Mobile Number 03XX', login:'Login', viewerLogin:'Viewer Login', editorRole:'🛠️ Editor - Admin', viewerRole:'👁️ Viewer - Villager'
+}
+};
+
+function toggleLang(){
+ lang = lang==='ur'?'en':'ur';
+ document.documentElement.dir = lang==='ur'?'rtl':'ltr';
+ document.getElementById('langBtn').innerText = lang==='ur'?'English':'اردو';
+ applyTrans();
+ render();
+}
+function applyTrans(){
+ document.querySelectorAll('[data-t]').forEach(el=>{
+  const k=el.getAttribute('data-t');
+  if(trans[lang][k]) el.innerText=trans[lang][k];
+ });
+ document.getElementById('name').placeholder = lang==='ur'?'نام':'Name';
+ document.getElementById('amount').placeholder = lang==='ur'?'رقم':'Amount';
+ if(role){ document.getElementById('roleBadge').innerText = role==='editor'? trans[lang].editorRole : trans[lang].viewerRole; }
+}
+
+function login(r){
+ role=r;
+ const area=document.getElementById('loginArea');
+ if(r==='editor'){
+   area.innerHTML=`<input id="u" placeholder="${trans[lang].user}" class="w-full border p-2 rounded mt-2"><input id="p" type="password" placeholder="${trans[lang].pass}" class="w-full border p-2 rounded mt-2"><button onclick="doEditor()" class="w-full mt-2 bg-[#0A3D2E] text-white py-2 rounded">${trans[lang].login}</button>`;
+ }
+ else{
+   area.innerHTML=`<input id="mob" placeholder="${trans[lang].mob}" class="w-full border p-2 rounded mt-2"><button onclick="doViewer()" class="w-full mt-2 bg-blue-600 text-white py-2 rounded">${trans[lang].viewerLogin}</button>`;
+ }
+}
+function doEditor(){
+ if(document.getElementById('u').value==='admin' && document.getElementById('p').value==='lesser123'){
+   localStorage.setItem('lm_role','editor'); role='editor'; showDash();
+ } else alert(lang==='ur'?'غلط لاگ ان':'Wrong login');
+}
+function doViewer(){
+ const m=document.getElementById('mob').value;
+ if(m.length>=11){ localStorage.setItem('lm_role','viewer'); role='viewer'; showDash(); }
+ else alert(lang==='ur'?'موبائل نمبر درست لکھیں':'Enter valid mobile');
+}
+function showDash(){
+ document.getElementById('loginBox').classList.add('hidden');
+ document.getElementById('dash').classList.remove('hidden');
+ document.getElementById('roleBadge').innerText = role==='editor'? trans[lang].editorRole : trans[lang].viewerRole;
+ if(role==='editor'){
+   document.getElementById('editorPanel').classList.remove('hidden');
+   document.getElementById('viewerMsg').classList.add('hidden');
+ } else {
+   document.getElementById('editorPanel').classList.add('hidden');
+   document.getElementById('viewerMsg').classList.remove('hidden');
+ }
+ render();
+}
+function logout(){ localStorage.removeItem('lm_role'); location.reload(); }
+function addEntry(){
+ if(role!=='editor'){ alert('Only admin can add'); return; }
+ const n=document.getElementById('name').value; const a=Number(document.getElementById('amount').value); const c=document.getElementById('cat').value;
+ if(!n||!a)return; data.unshift({name:n,amount:a,cat:c,date:new Date().toLocaleDateString()}); localStorage.setItem('lm_data',JSON.stringify(data)); render(); document.getElementById('name').value=''; document.getElementById('amount').value='';
+}
+function deleteEntry(i){
+ if(role!=='editor') return;
+ if(confirm('Delete?')){ data.splice(i,1); localStorage.setItem('lm_data',JSON.stringify(data)); render(); }
+}
+function render(){
+ const list=document.getElementById('list');
+ list.innerHTML=data.map((d,i)=>`<div class="bg-white p-2 rounded shadow flex justify-between text-sm"><span><b>${d.name}</b> - ${d.cat} - ${d.date}</span><div class="flex gap-2"><span>Rs.${d.amount}</span>${role==='editor'?`<button onclick="deleteEntry(${i})" class="text-red-600">❌</button>`:''}</div></div>`).join('');
+ const calc=c=>data.filter(x=>x.cat===c).reduce((s,x)=>s+x.amount,0);
+ document.getElementById('mBal').innerText='Rs.'+calc('مسجد'); document.getElementById('mdBal').innerText='Rs.'+calc('مدرسہ'); document.getElementById('qBal').innerText='Rs.'+calc('قبرستان');
+}
+if(localStorage.getItem('lm_role')){ role=localStorage.getItem('lm_role'); showDash(); }
+applyTrans();
+</script></body></html>
